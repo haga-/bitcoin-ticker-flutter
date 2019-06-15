@@ -31,19 +31,26 @@ const List<String> cryptoList = [
   'LTC',
 ];
 
-const String bitcoinUrl =
-    'https://apiv2.bitcoinaverage.com/indices/global/ticker/BTC';
+const String bitcoinAverageURL =
+    'https://apiv2.bitcoinaverage.com/indices/global/ticker';
 
 class CoinData {
-  Future<double> getCoinData(String selectedCurrency) async {
-    http.Response response = await http.get('$bitcoinUrl$selectedCurrency');
+  Future<Map> getCoinData(String selectedCurrency) async {
+    Map<String, String> cryptoPrices = {};
 
-    if (response.statusCode == 200) {
-      var decodedData = jsonDecode(response.body);
-      return decodedData['last'];
-    } else {
-      print(response.statusCode);
-      throw ('Problem with the get request');
+    for (String crypto in cryptoList) {
+      String requestUrl = '$bitcoinAverageURL/$crypto$selectedCurrency';
+      http.Response response = await http.get(requestUrl);
+
+      if (response.statusCode == 200) {
+        var decodedData = jsonDecode(response.body);
+        double lastPrice = decodedData['last'];
+        cryptoPrices[crypto] = lastPrice.toStringAsFixed(0);
+      } else {
+        print(response.statusCode);
+        throw ('Problem with the get request');
+      }
     }
+    return cryptoPrices;
   }
 }
